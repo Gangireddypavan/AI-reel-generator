@@ -3,18 +3,19 @@ import uuid
 from elevenlabs import VoiceSettings
 from elevenlabs.client import ElevenLabs
 from config import ELEVENLABS_API_KEY
- 
-client = ElevenLabs(
-    api_key=ELEVENLABS_API_KEY,
-)
+
+client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
 
 def text_to_speech_file(text: str, folder: str) -> str:
-    # Calling the text_to_speech conversion API with detailed parameters
+    # ensure folder exists
+    folder_path = os.path.join("user_uploads", folder)
+    os.makedirs(folder_path, exist_ok=True)
+
     response = client.text_to_speech.convert(
-        voice_id="pNInz6obpgDQGcFmaJgB", # Adam pre-made voice
+        voice_id="pNInz6obpgDQGcFmaJgB",
         output_format="mp3_22050_32",
         text=text,
-        model_id="eleven_turbo_v2", # use the turbo model for low latency
+        model_id="eleven_turbo_v2",
         voice_settings=VoiceSettings(
             stability=0.0,
             similarity_boost=1.0,
@@ -24,16 +25,13 @@ def text_to_speech_file(text: str, folder: str) -> str:
         ),
     )
 
-    # Generating a unique file name for the output MP3 file
-    save_file_path = os.path.join(f"user_uploads/{folder}", "audio.mp3")
+    save_file_path = os.path.join(folder_path, "audio.mp3")
 
-    # Writing the audio to a file
+    # write audio
     with open(save_file_path, "wb") as f:
         for chunk in response:
             if chunk:
                 f.write(chunk)
 
     print(f"{save_file_path}: A new audio file was saved successfully!")
-
-    # Return the path of the saved audio file
     return save_file_path
